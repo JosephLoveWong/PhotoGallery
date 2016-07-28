@@ -1,8 +1,10 @@
 package com.promiseland.photogallery.fragment;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -14,6 +16,7 @@ import android.widget.ImageView;
 
 import com.promiseland.photogallery.R;
 import com.promiseland.photogallery.bean.GalleryItem;
+import com.promiseland.photogallery.listener.ThumbnailDownloaderListener;
 import com.promiseland.photogallery.utils.FlickrFetchr;
 import com.promiseland.photogallery.utils.ThumbnailDownloader;
 
@@ -35,18 +38,33 @@ public class PhotoGalleryFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
 
-        new FetchItemsTask().execute();
-        mThumbnailDownloader = new ThumbnailDownloader<>();
+        mThumbnailDownloader = new ThumbnailDownloader<>(new Handler());
         mThumbnailDownloader.start();
         mThumbnailDownloader.getLooper();
+        mThumbnailDownloader.setListener(new ThumbnailDownloaderListener<ImageView>() {
+            @Override
+            public void onThumbnailDownloaded(ImageView imageView, Bitmap bitmap) {
+                if(imageView.getVisibility() == View.VISIBLE){
+                    imageView.setImageBitmap(bitmap);
+                }
+            }
+
+        });
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        new FetchItemsTask().execute();
         View rootView = inflater.inflate(R.layout.fragment_photo_gallery, container, false);
         mGridView = (GridView) rootView.findViewById(R.id.gridView);
         return rootView;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mThumbnailDownloader.cleanQueue();
     }
 
     @Override
