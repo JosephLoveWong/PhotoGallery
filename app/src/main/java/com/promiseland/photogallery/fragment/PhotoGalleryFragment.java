@@ -1,5 +1,6 @@
 package com.promiseland.photogallery.fragment;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -9,12 +10,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
+import android.widget.ImageView;
 
 import com.promiseland.photogallery.R;
 import com.promiseland.photogallery.bean.GalleryItem;
 import com.promiseland.photogallery.utils.FlickrFetchr;
+import com.promiseland.photogallery.utils.ThumbnailDownloader;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by joseph on 2016/7/26.
@@ -24,6 +28,7 @@ public class PhotoGalleryFragment extends Fragment {
 
     private GridView mGridView;
     private ArrayList<GalleryItem> mItems;
+    private ThumbnailDownloader<ImageView> mThumbnailDownloader;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -31,6 +36,9 @@ public class PhotoGalleryFragment extends Fragment {
         setRetainInstance(true);
 
         new FetchItemsTask().execute();
+        mThumbnailDownloader = new ThumbnailDownloader<>();
+        mThumbnailDownloader.start();
+        mThumbnailDownloader.getLooper();
     }
 
     @Nullable
@@ -41,14 +49,42 @@ public class PhotoGalleryFragment extends Fragment {
         return rootView;
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if(mThumbnailDownloader != null){
+            mThumbnailDownloader.quit();
+        }
+    }
+
     private void setupAdapter(){
         if(getActivity() == null || mGridView == null){
             return;
         }
         if(mItems != null){
-            mGridView.setAdapter(new ArrayAdapter<GalleryItem>(getActivity(), android.R.layout.simple_gallery_item, mItems));
+            mGridView.setAdapter(new GrideViewAdapter(getActivity(), android.R.layout.simple_gallery_item, mItems));
         } else {
             mGridView.setAdapter(null);
+        }
+    }
+
+    private class GrideViewAdapter extends ArrayAdapter<GalleryItem>{
+
+        public GrideViewAdapter(Context context, int resource, List<GalleryItem> objects) {
+            super(context, resource, objects);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if(convertView == null){
+                convertView = getActivity().getLayoutInflater().inflate(R.layout.gallery_item, parent, false);
+            }
+
+            ImageView photo = (ImageView) convertView.findViewById(R.id.photo);
+            GalleryItem item = getItem(position);
+            mThumbnailDownloader.queueThumbnail(photo, item.getUrl());
+
+            return convertView;
         }
     }
 
