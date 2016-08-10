@@ -60,10 +60,14 @@ public class PhotoGalleryFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        new FetchItemsTask().execute();
+        updateItems();
         View rootView = inflater.inflate(R.layout.fragment_photo_gallery, container, false);
         mGridView = (GridView) rootView.findViewById(R.id.gridView);
         return rootView;
+    }
+
+    public void updateItems() {
+        new FetchItemsTask().execute();
     }
 
     @Override
