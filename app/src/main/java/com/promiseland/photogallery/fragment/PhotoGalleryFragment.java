@@ -1,7 +1,6 @@
 package com.promiseland.photogallery.fragment;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -40,8 +39,7 @@ public class PhotoGalleryFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
 
-        Intent intent = new Intent(getActivity(), PollService.class);
-        getActivity().startService(intent);
+        PollService.setServiceAlarm(getActivity(), true);
 
         mThumbnailDownloader = new ThumbnailDownloader<>(new Handler());
         mThumbnailDownloader.start();
