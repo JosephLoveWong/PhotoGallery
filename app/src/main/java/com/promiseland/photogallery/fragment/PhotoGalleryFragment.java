@@ -1,20 +1,23 @@
 package com.promiseland.photogallery.fragment;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
 
 import com.promiseland.photogallery.R;
+import com.promiseland.photogallery.activity.PhotoPageActivity;
 import com.promiseland.photogallery.bean.GalleryItem;
 import com.promiseland.photogallery.listener.ThumbnailDownloaderListener;
 import com.promiseland.photogallery.service.PollService;
@@ -27,7 +30,7 @@ import java.util.List;
 /**
  * Created by joseph on 2016/7/26.
  */
-public class PhotoGalleryFragment extends Fragment {
+public class PhotoGalleryFragment extends VisibleFragment {
     private static final String TAG = "PhotoGalleryFragment";
 
     private GridView mGridView;
@@ -61,6 +64,19 @@ public class PhotoGalleryFragment extends Fragment {
         updateItems();
         View rootView = inflater.inflate(R.layout.fragment_photo_gallery, container, false);
         mGridView = (GridView) rootView.findViewById(R.id.gridView);
+        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if(mItems != null){
+                    GalleryItem galleryItem = mItems.get(position);
+                    Uri uri = Uri.parse(galleryItem.getPhotoPageUrl());
+//                    Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                    Intent intent = new Intent(getActivity(), PhotoPageActivity.class);
+                    intent.setData(uri);
+                    startActivity(intent);
+                }
+            }
+        });
         return rootView;
     }
 
